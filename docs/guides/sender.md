@@ -53,12 +53,8 @@ A JSON object containing the details of the payment order and the recipient info
 | --- | --- | --- | --- |
 | `amount` | `number` | Yes | The amount of the token to be off-ramped. |
 | `rate` | `number` | Yes | The exchange rate from the token to the local currency. [Fetch current rate](https://www.notion.so/Sender-API-Documentation-10d2482d45a2802da265f53e212f3eae?pvs=21) |
-| `network` | `string` | Yes | The blockchain network on which the token operates.
-**Supported networks**: `tron`, `base`, `bnb-smart-chain`, `polygon`, `arbitrum-one` |
-| `token` | `string` | Yes | The symbol of the cryptocurrency token.
-**Supported tokens**: `USDT`, `USDC` 
-* *USDC is not supported on Tron*
-* *USDT is not supported on Base* |
+| `network` | `string` | Yes | The blockchain network on which the token operates. *Supported networks*: `tron`, `base`, `bnb-smart-chain`, `polygon`, `arbitrum-one` 
+| `token` | `string` | Yes | The symbol of the cryptocurrency token. Supported tokens: `USDT`, `USDC`. * *USDC is not supported on Tron* USDT is not supported on Base*  
 | `recipient` | `object` | Yes | [see more](https://www.notion.so/Sender-API-Documentation-10d2482d45a2802da265f53e212f3eae?pvs=21) |
 | `returnAddress` | `string` | No | The wallet address to refund the fund to if there is a failure. |
 | `reference` | `string` | No | If specified, the field should be a unique identifier for the payment order. Only **`-`**,**`_`** and alphanumeric characters allowed. |
