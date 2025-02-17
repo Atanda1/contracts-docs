@@ -1,32 +1,85 @@
 # Gateway Orders
 
-To create orders, users have to 
-
+To create an off-ramp order, we have to first import certain values from `ethers` and define both the stablecoin's token contract and paycrest's gateway contract.
+In this example, we're performing the transaction on the `arbitrum` network and we're using the appropriate contract addresses and `ABI` per contract.
 
 ```
-// Off ramp on paycrest
+import { ethers, Contract, formatUnits, parseUnits, BigNumber, ZeroAddress } from "ethers";
 
-const { SimulationProvider } = zimulatoor;
-const { Contract, formatUnits, parseUnits, BigNumber, ZeroAddress } = ethers;
-const { address: usdtAddress, abi: usdtAbi } = bonadocs.contracts.USDT;
-const { address: gatewayAddress, abi: gatewayAbi } = bonadocs.contracts.Gateway;
+// define token contract and gateway contract
+const usdtContract = {
+  address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+  abi:  [
+  "function transfer(address _to, uint256 _value) public returns (bool)",
+    ];
+}
 
-// Initating variables
-const chainId = 42161
-const provider = new SimulationProvider(chainId)
-const senderAddress = '0xF977814e90dA44bFA03b6295A0616a897441aceC';
+const gatewayContract = {
+ address: '0xE8bc3B607CfE68F47000E3d200310D49041148Fc'
+ abi: '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Paused","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Unpaused","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"previousAdmin","type":"address"},{"indexed":false,"internalType":"address","name":"newAdmin","type":"address"}],"name":"AdminChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bytes32","name":"splitOrderId","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"orderId","type":"bytes32"},{"indexed":true,"internalType":"address","name":"liquidityProvider","type":"address"},{"indexed":false,"internalType":"uint96","name":"settlePercent","type":"uint96"}],"name":"OrderSettled","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"},{"indexed":true,"internalType":"bytes32","name":"orderId","type":"bytes32"}],"name":"OrderRefunded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint64","name":"protocolFee","type":"uint64"}],"name":"ProtocolFeeUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint8","name":"version","type":"uint8"}],"name":"Initialized","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"beacon","type":"address"}],"name":"BeaconUpgraded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"implementation","type":"address"}],"name":"Upgraded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferStarted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":true,"internalType":"address","name":"token","type":"address"},{"indexed":true,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"protocolFee","type":"uint256"},{"indexed":false,"internalType":"bytes32","name":"orderId","type":"bytes32"},{"indexed":false,"internalType":"uint256","name":"rate","type":"uint256"},{"indexed":false,"internalType":"string","name":"messageHash","type":"string"}],"name":"OrderCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":true,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"SenderFeeTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"treasuryAddress","type":"address"}],"name":"SetFeeRecipient","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"what","type":"bytes32"},{"indexed":true,"internalType":"address","name":"treasuryAddress","type":"address"}],"name":"ProtocolAddressUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"what","type":"bytes32"},{"indexed":true,"internalType":"address","name":"value","type":"address"},{"indexed":false,"internalType":"uint256","name":"status","type":"uint256"}],"name":"SettingManagerBool","type":"event"},{"inputs":[],"name":"acceptOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getFeeDetails","outputs":[{"internalType":"uint64","name":"","type":"uint64"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"initialize","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pause","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"paused","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pendingOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"unpause","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_token","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"},{"internalType":"uint96","name":"_rate","type":"uint96"},{"internalType":"address","name":"_senderFeeRecipient","type":"address"},{"internalType":"uint256","name":"_senderFee","type":"uint256"},{"internalType":"address","name":"_refundAddress","type":"address"},{"internalType":"string","name":"messageHash","type":"string"}],"name":"createOrder","outputs":[{"internalType":"bytes32","name":"orderId","type":"bytes32"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_token","type":"address"}],"name":"isTokenSupported","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"_orderId","type":"bytes32"}],"name":"getOrderInfo","outputs":[{"components":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"token","type":"address"},{"internalType":"address","name":"senderFeeRecipient","type":"address"},{"internalType":"uint256","name":"senderFee","type":"uint256"},{"internalType":"uint256","name":"protocolFee","type":"uint256"},{"internalType":"bool","name":"isFulfilled","type":"bool"},{"internalType":"bool","name":"isRefunded","type":"bool"},{"internalType":"address","name":"refundAddress","type":"address"},{"internalType":"uint96","name":"currentBPS","type":"uint96"},{"internalType":"uint256","name":"amount","type":"uint256"}],"internalType":"struct IGateway.Order","name":"","type":"tuple"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"_splitOrderId","type":"bytes32"},{"internalType":"bytes32","name":"_orderId","type":"bytes32"},{"internalType":"address","name":"_liquidityProvider","type":"address"},{"internalType":"uint64","name":"_settlePercent","type":"uint64"}],"name":"settle","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"what","type":"bytes32"},{"internalType":"address","name":"value","type":"address"},{"internalType":"uint256","name":"status","type":"uint256"}],"name":"settingManagerBool","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"what","type":"bytes32"},{"internalType":"address","name":"value","type":"address"}],"name":"updateProtocolAddress","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_fee","type":"uint256"},{"internalType":"bytes32","name":"_orderId","type":"bytes32"}],"name":"refund","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint64","name":"_protocolFeePercent","type":"uint64"}],"name":"updateProtocolFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"fallback"},{"stateMutability":"payable","type":"receive"}]'
+}
+
+const { address: usdtAddress, abi: usdtAbi } = usdtContract;
+const { address: gatewayAddress, abi: gatewayAbi } = gatewayContract;
+
+```
+
+Next, let's define our user's `signer` that'll be used to initiate the contracts. One thing to note is that you require the `provider` will to get the signer.
+
+```
+// Defining provider, signer, and the contracts
+
+const provider = new ethers.BrowserProvider(window.ethereum);
 
 // Initiating signers
-const senderSigner = await provider.getImpersonatedSigner(senderAddress);
+const signer = await provider.getSigner();
 
 // Initiating contracts
-const gateway = new Contract(gatewayAddress, gatewayAbi, senderSigner)
+const gateway = new Contract(gatewayAddress, gatewayAbi, signer)
 const usdtAsset = new Contract(
   usdtAddress,
   usdtAbi,
-  senderSigner,
+  signer,
 );
+```
 
+Let's verify the user's account by taking their account number and bank to generate the account name. Secondly, let's get the current exchange rate for amount of naira per USDT that would be exchanged for this transaction.
+
+Both requests are performed in parallel so it can be completed faster.
+
+```
+// get the  nairaRate and verify account number
+const nairaRate = "https://api.paycrest.io/v1/rates/usdt/1/ngn";
+const accountName = "https://api.paycrest.io/v1/verify-account";
+
+  const bankData = {
+    institution: "KUDANGPC",
+    accountIdentifier: "2002948489"
+  };
+
+  try {
+    const [nairaRate, accountName] = await Promise.all([
+      fetch(nairaRate), // GET request
+      fetch(accountName, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bankData)
+      }) // POST request
+    ]);
+
+    const getRate = await nairaRate.json();
+    const getAccount = await accountName.json();
+
+    console.log("naira rate response:", getRate.data);
+    console.log("get account response:", getAccount.data);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+```
+
+Next, encrypt the user's bank data in a message hash. Here, we fetch the aggregator's public key using `fetchAggregatorPublicKey()`. Then, we generate the hash by passing the bank data and key into the the `publicKeyEncrypt()` function.
+
+```
 // Encrypt arbitrary data with a public key
 async function publicKeyEncrypt(data, publicKeyPEM) {
   // First, we need to convert PEM to a format Web Crypto API can use
@@ -89,7 +142,7 @@ const fetchAggregatorPublicKey = async () => {
 // Encrypt recipient details
 const recipient = {
   accountIdentifier: "2002948489",
-  accountName: "Chibuotu  Amadi",
+  accountName: getAccount.data,
   institution: "KUDANGPC",
   providerId: "etoMCRIY",
   memo: "N/A",
@@ -99,7 +152,11 @@ const publicKey = await fetchAggregatorPublicKey();
 const messageHash = await publicKeyEncrypt(recipient, publicKey.data);
 
 console.log(publicKey, messageHash);
+```
+Before we can debit USDT from the user's wallet, we need them to confirm the `approve` method on the `usdtAsset` contract by passing in the amount(`usdtAmount`) and the `gatewayAddress`.
 
+We define the amount by using `parseUnits` from ethers. It takes in the amount in string and the token's decimal. In this case, USDT's decimal is `6`.
+```
 // approve on USDT
 const usdtAmount = parseUnits('100', 6);
 
@@ -109,7 +166,10 @@ const approveTx =
 const approveRct = await approveTx.wait();
 
 console.log(approveRct.logs)
+```
 
+
+```
 // create order through the gateway contract
 
 const refundAddress = "0xFf7dAD16C6Cd58FD0De22ddABbcBF35f888Fc9B2"
@@ -128,7 +188,7 @@ try {
   const createOrderRct = await createOrderTx.wait();
 
   const orderLog = createOrderRct.logs.find((l) => l.fragment?.name === "OrderCreated")
-  
+
   console.log("emittedCreatedOrder", {
     refundAddress: orderLog.args[0],
     token: orderLog.args[1],
