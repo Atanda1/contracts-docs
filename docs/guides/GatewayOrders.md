@@ -1,7 +1,11 @@
 # Gateway Orders
 
-To create an off-ramp order, we have to first import certain values from `ethers` and define both the stablecoin's token contract and paycrest's gateway contract.
-In this example, we're performing the transaction on the `arbitrum` network and we're using the appropriate contract addresses and `ABI` per contract.
+In this guide, we would create an off-ramp order to convert USDT to naira.
+
+### Setup 
+To create an off-ramp order, we have to first import certain values from `ethers` and define both the stablecoin's token contract and paycrest's gateway contract. 
+
+In this example, we're performing the transaction on the `arbitrum` network and we're using the appropriate contract addresses and `ABI` per contract. We then define variables for the transaction's exchange rate and user's bank account.
 
 ```
 import { ethers, Contract, formatUnits, parseUnits, BigNumber, ZeroAddress } from "ethers";
@@ -21,7 +25,7 @@ const gatewayContract = {
 
 const { address: usdtAddress, abi: usdtAbi } = usdtContract;
 const { address: gatewayAddress, abi: gatewayAbi } = gatewayContract;
-
+let getRate, getAccount;
 ```
 
 Next, let's define our user's `signer` that'll be used to initiate the contracts. One thing to note is that you require the `provider` will to get the signer.
@@ -43,10 +47,11 @@ const usdtAsset = new Contract(
 );
 ```
 
-Let's verify the user's account by taking their account number and bank to generate the account name. Secondly, let's get the current exchange rate for amount of naira per USDT that would be exchanged for this transaction.
+Let's verify the user's account by taking their account number and bank to generate the account name. Secondly, let's get the current exchange rate for amount of naira(NGN) per USDT that would be exchanged for this transaction.
 
 Both requests are performed in parallel so it can be completed faster.
 
+### Fetch naira rate and bank verification
 ```
 // get the  nairaRate and verify account number
 const nairaRate = "https://api.paycrest.io/v1/rates/usdt/1/ngn";
@@ -67,8 +72,8 @@ const accountName = "https://api.paycrest.io/v1/verify-account";
       }) // POST request
     ]);
 
-    const getRate = await nairaRate.json();
-    const getAccount = await accountName.json();
+    getRate = await nairaRate.json();
+    getAccount = await accountName.json();
 
     console.log("naira rate response:", getRate.data);
     console.log("get account response:", getAccount.data);
@@ -76,7 +81,7 @@ const accountName = "https://api.paycrest.io/v1/verify-account";
     console.error("Error fetching data:", error);
   }
 ```
-
+### Bank Data Encryption
 Next, encrypt the user's bank data in a message hash. Here, we fetch the aggregator's public key using `fetchAggregatorPublicKey()`. Then, we generate the hash by passing the bank data and key into the the `publicKeyEncrypt()` function.
 
 ```
@@ -153,6 +158,9 @@ const messageHash = await publicKeyEncrypt(recipient, publicKey.data);
 
 console.log(publicKey, messageHash);
 ```
+
+### Approve USDT token 
+
 Before we can debit USDT from the user's wallet, we need them to confirm the `approve` method on the `usdtAsset` contract by passing in the amount(`usdtAmount`) and the `gatewayAddress`.
 
 We define the amount by using `parseUnits` from ethers. It takes in the amount in string and the token's decimal. In this case, USDT's decimal is `6`.
@@ -168,7 +176,9 @@ const approveRct = await approveTx.wait();
 console.log(approveRct.logs)
 ```
 
+### Create Order
 
+Finally, we can now make the order. We make use of the [createOrder](#createOrder) method on the gateway.
 ```
 // create order through the gateway contract
 
@@ -178,7 +188,7 @@ try {
   const createOrderTx = await gateway.createOrder(
     usdtAddress,
     parseUnits('10', 6),
-    1674,
+    Number(getRate.data),
     ZeroAddress,
     0,
     refundAddress,
@@ -203,3 +213,6 @@ try {
   console.error(error)
 }
 ```
+
+We pass in the `token`, `amount`, `rate`, `senderFeeRecipient`, `senderFee`, `refundAddress`, `messageHash` respectively. Then we get back the `emittedCreatedOrder` event that's logged.
+
