@@ -1,11 +1,11 @@
 # Gateway Orders
 
-In this guide, we would create an off-ramp order to convert USDT to Nigerian naira(NGN).
+In this guide, we will create an off-ramp order to convert USDT to Nigerian naira(NGN).
 
 ## Setup 
-To create an off-ramp order, we have to first import certain values from `ethers` and define both the stablecoin's token contract and paycrest's gateway contract. 
+To create an off-ramp order, we have to first import certain values from `ethers` and define both the stablecoin's token contract and Paycrest's gateway contract. 
 
-In this example, we're performing the transaction on the `arbitrum` network and we're using the appropriate contract addresses and `ABI` per contract. We then define variables for the transaction's exchange rate and user's bank account.
+In this example, we're performing the transaction on the `arbitrum` network and we're using the appropriate contract addresses and `ABI` per contract. We then define variables for the transaction's exchange rate and the user's bank account.
 
 ### Import Values
 ```
@@ -53,6 +53,8 @@ Let's verify the user's account by taking their account number and bank to gener
 
 Both requests are performed in parallel so it can be completed faster.
 
+P.S: Keep in mind that for the `bankData` you can know the correct `institution` code from [here]((/api#fetch-supported-institutions))
+
 ## Fetch naira rate and bank verification
 ```
 // get the  nairaRate and verify account number
@@ -84,7 +86,7 @@ const accountName = "https://api.paycrest.io/v1/verify-account";
   }
 ```
 ## Bank Data Encryption
-Next, encrypt the user's bank data in a message hash. Here, we fetch the aggregator's public key using `fetchAggregatorPublicKey()`. Then, we generate the hash by passing the bank data and key into the the `publicKeyEncrypt()` function.
+Next, encrypt the user's bank data in a message hash. Here, we fetch the aggregator's public key using `fetchAggregatorPublicKey()`. Then, we generate the hash by passing the bank data and key into the `publicKeyEncrypt()` function.
 
 ```
 // Encrypt arbitrary data with a public key
