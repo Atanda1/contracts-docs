@@ -1,7 +1,6 @@
-# Website
+#Bonadocs Documentation
 
-This website was generated with [Bonadocs](https://bonadocs.com/) using Docusaurus. It includes your smart contract
-documentation with interactive widgets to help developers get started integrating quickly.
+Paycrest contracts are multi-chain EVM-based smart contracts that facilitate the on-chain lifecycle of a payment order. They empower a sender to create a payment order, enable a liquidity provider to receive cryptocurrency in escrow, and much more. This docs covers how to use our APIs and contract to enable our off-ramp in your app.  
 
 ### Installation
 
@@ -24,19 +23,3 @@ $ yarn build
 ```
 
 This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-### Deployment
-
-Using SSH:
-
-```
-$ USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```
-$ GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
